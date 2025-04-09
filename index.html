@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProfePersonal - Tu Asistente Educativo del Futuro</title>
+    <title>ProfePersonal - Tu Asistente Educativo</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -223,6 +223,9 @@
                 font-size: 12px;
             }
         }
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7756051541338267"
      crossorigin="anonymous"></script>
@@ -270,5 +273,179 @@
         <p>Contacto: <a href="mailto:info@profepersonal.online">info@profepersonal.online</a></p>
         <p>&copy; 2025 ProfePersonal. Todos los derechos reservados.</p>
     </footer>
+    <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY",
+        authDomain: "TU_AUTH_DOMAIN",
+        projectId: "TU_PROJECT_ID",
+        storageBucket: "TU_STORAGE_BUCKET",
+        messagingSenderId: "TU_MESSAGING_SENDER_ID",
+        appId: "TU_APP_ID"
+    };
+
+    // Inicializar Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+
+    // Mostrar modal de login
+    function showLoginModal() {
+        const modal = document.createElement("div");
+        modal.style.position = "fixed";
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100%";
+        modal.style.height = "100%";
+        modal.style.background = "rgba(0, 0, 0, 0.8)";
+        modal.style.display = "flex";
+        modal.style.justifyContent = "center";
+        modal.style.alignItems = "center";
+        modal.style.zIndex = "1000";
+        modal.innerHTML = `
+            <div style="background: #fff; padding: 20px; border-radius: 8px; color: #000; text-align: center;">
+                <h2 style="font-family: 'Orbitron', sans-serif; color: #00ccff;">Bienvenido a ProfePersonal</h2>
+                <button id="googleLogin" style="background: #4285F4; color: #fff; padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer;">Iniciar con Google</button>
+                <input id="emailInput" type="email" placeholder="Email" style="display: block; margin: 10px auto; padding: 8px; width: 80%; border: 1px solid #ccc; border-radius: 4px;" />
+                <input id="passwordInput" type="password" placeholder="Contraseña" style="display: block; margin: 10px auto; padding: 8px; width: 80%; border: 1px solid #ccc; border-radius: 4px;" />
+                <button id="emailLogin" style="background: #00ccff; color: #000; padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer;">Iniciar con Email</button>
+                <button id="emailSignup" style="background: #ccff00; color: #000; padding: 10px 20px; margin: 10px; border: none; border-radius: 5px; cursor: pointer;">Registrarse</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.getElementById("googleLogin").addEventListener("click", () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    currentUser = result.user;
+                    initializeUser(currentUser);
+                    modal.remove();
+                    showPlansSection();
+                })
+                .catch((error) => alert(`¡Uy, loco! Error al iniciar sesión: ${error.message}`));
+        });
+
+        document.getElementById("emailLogin").addEventListener("click", () => {
+            const email = document.getElementById("emailInput").value;
+            const password = document.getElementById("passwordInput").value;
+            auth.signInWithEmailAndPassword(email, password)
+                .then((result) => {
+                    currentUser = result.user;
+                    initializeUser(currentUser);
+                    modal.remove();
+                    showPlansSection();
+                })
+                .catch((error) => alert(`¡Uy, loco! Error al iniciar sesión: ${error.message}`));
+        });
+
+        document.getElementById("emailSignup").addEventListener("click", () => {
+            const email = document.getElementById("emailInput").value;
+            const password = document.getElementById("passwordInput").value;
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((result) => {
+                    currentUser = result.user;
+                    initializeUser(currentUser);
+                    modal.remove();
+                    showPlansSection();
+                })
+                .catch((error) => alert(`¡Uy, loco! Error al registrarse: ${error.message}`));
+        });
+    }
+
+    // Inicializar datos del usuario en Firestore
+    async function initializeUser(user) {
+        const userRef = db.collection("users").doc(user.uid);
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) {
+            await userRef.set({
+                userId: user.uid,
+                plan: "TEP-DUDAS", // Plan gratis por defecto
+                consultasMes: 0,
+                ultimaConsulta: new Date().toISOString().split("T")[0],
+                examenesMes: 0,
+                ultimaFechaExamen: new Date().toISOString().split("T")[0]
+            });
+        }
+    }
+
+    // Mostrar sección de planes después de iniciar sesión
+    function showPlansSection() {
+        const plansSection = document.createElement("section");
+        plansSection.id = "plans-section";
+        plansSection.style.padding = "50px";
+        plansSection.style.textAlign = "center";
+        plansSection.innerHTML = `
+            <h2 style="font-family: 'Orbitron', sans-serif; color: #00ccff;">Elegí tu plan</h2>
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 250px;">
+                    <h3>Plan Dudas (Gratis)</h3>
+                    <p>✅ TizaIA: 30 consultas/mes</p>
+                    <p>✅ GDE: 1 examen/mes</p>
+                    <button id="planDudas" style="background: #00ccff; color: #000; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Seleccionar</button>
+                </div>
+                <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 250px;">
+                    <h3>Plan Repaso (200 UYU)</h3>
+                    <p>✅ TizaIA: 200 consultas/mes</p>
+                    <p>✅ GDE: Más exámenes</p>
+                    <p>✅ TPP: Tutorías personalizadas</p>
+                    <button id="planRepaso" style="background: #00ccff; color: #000; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Seleccionar</button>
+                </div>
+                <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 250px;">
+                    <h3>Plan Apoyo (400 UYU)</h3>
+                    <p>✅ TizaIA: 200 consultas/mes</p>
+                    <p>✅ GDE: Más exámenes</p>
+                    <p>✅ TPP: Tutorías personalizadas</p>
+                    <button id="planApoyo" style="background: #00ccff; color: #000; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Seleccionar</button>
+                </div>
+                <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 250px;">
+                    <h3>Plan Socorro (600 UYU)</h3>
+                    <p>✅ TizaIA: 500 consultas/mes</p>
+                    <p>✅ GDE: Más exámenes</p>
+                    <p>✅ TPP: Tutorías personalizadas</p>
+                    <p>✅ TPE: Exámenes personalizados</p>
+                    <button id="planSocorro" style="background: #00ccff; color: #000; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Seleccionar</button>
+                </div>
+            </div>
+            <button id="goToTizaIA" style="background: #ccff00; color: #000; padding: 10px 20px; margin-top: 20px; border: none; border-radius: 5px; cursor: pointer;">Ir a TizaIA</button>
+        `;
+        document.body.appendChild(plansSection);
+
+        document.getElementById("planDudas").addEventListener("click", async () => {
+            const userRef = db.collection("users").doc(currentUser.uid);
+            await userRef.update({ plan: "TEP-DUDAS" });
+            alert("¡Plan Dudas seleccionado! Ahora tenés 30 consultas/mes en TizaIA.");
+        });
+
+        document.getElementById("planRepaso").addEventListener("click", () => {
+            window.location.href = "URL_DEL_CHECKOUT_REPASO"; // Reemplazá con la URL de checkout de Stripe para el plan Repaso
+        });
+
+        document.getElementById("planApoyo").addEventListener("click", () => {
+            window.location.href = "URL_DEL_CHECKOUT_APOYO"; // Reemplazá con la URL de checkout de Stripe para el plan Apoyo
+        });
+
+        document.getElementById("planSocorro").addEventListener("click", () => {
+            window.location.href = "URL_DEL_CHECKOUT_SOCORRO"; // Reemplazá con la URL de checkout de Stripe para el plan Socorro
+        });
+
+        document.getElementById("goToTizaIA").addEventListener("click", () => {
+            window.location.href = "https://tizaia.profepersonal.online";
+        });
+    }
+
+    // Mostrar modal de login al cargar la página
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            currentUser = user;
+            initializeUser(user);
+            showPlansSection();
+        } else {
+            showLoginModal();
+        }
+    });
+</script>
 </body>
 </html>
