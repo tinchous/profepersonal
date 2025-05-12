@@ -1,0 +1,48 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "tuplataformaeducativa.online"
+        }
+      ],
+      "destination": "https://www.tuplataformaeducativa.online/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "profepersonal.online"
+        }
+      ],
+      "destination": "https://www.tuplataformaeducativa.online/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.profepersonal.online"
+        }
+      ],
+      "destination": "https://www.tuplataformaeducativa.online/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "profepersonal.vercel.app"
+        }
+      ],
+      "destination": "https://www.tuplataformaeducativa.online/:path*",
+      "permanent": true
+    }
+  ]
+}
