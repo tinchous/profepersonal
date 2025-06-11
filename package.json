@@ -1,0 +1,12 @@
+{
+  "name": "prope-personal",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "serve public",
+    "build": "echo \"Build completo\" && cp -R css/ public/ && cp -R js/ public/",
+    "dev": "live-server public"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}
