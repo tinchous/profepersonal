@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProfePersonal - Centro Educativo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+
+  <header class="header-main">
+    <h1 onclick="showSecretMessage()">ProfePersonal</h1>
+    <div class="auth-buttons" id="authButtons">
+      <button class="btn-login" onclick="abrirPopup('login')">Iniciar Sesión</button>
+      <button class="btn-register" onclick="abrirPopup('register')">Registrarse</button>
+    </div>
+    <div class="user-info" id="userInfo" style="display:none;">
+      <span id="userName"></span>
+      <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="hero-section">
+      <h2>Herramientas educativas para estudiantes de 7mo a 12do</h2>
+      <p>Accede a tus herramientas según tu plan:</p>
+      
+      <div class="tools-grid">
+        <!-- TizaIA - Disponible para todos -->
+        <div class="tool-card" onclick="redirectToApp('tiz')">
+          <div class="tool-icon">📚</div>
+          <h3>TizaIA</h3>
+          <p>Asistente educativo para resolver dudas</p>
+          <span class="plan-badge todos">Todos los planes</span>
+        </div>
+        
+        <!-- GTE - Disponible desde Repaso -->
+        <div class="tool-card" id="gteCard" onclick="checkPlan('gte')">
+          <div class="tool-icon">🔢</div>
+          <h3>GeneraTusEjercicios</h3>
+          <p>Crea ejercicios personalizados</p>
+          <span class="plan-badge repaso">Plan Repaso+</span>
+        </div>
+        
+        <!-- TEP - Disponible desde Apoyo -->
+        <div class="tool-card" id="tepCard" onclick="checkPlan('tep')">
+          <div class="tool-icon">📝</div>
+          <h3>TuExamPersonal</h3>
+          <p>Genera y resuelve exámenes</p>
+          <span class="plan-badge apoyo">Plan Apoyo+</span>
+        </div>
+        
+        <!-- TPP - Disponible en Premium -->
+        <div class="tool-card" id="tppCard" onclick="checkPlan('tpp')">
+          <div class="tool-icon">🎓</div>
+          <h3>TuProfePersonal</h3>
+          <p>Clases virtuales interactivas</p>
+          <span class="plan-badge premium">Plan Premium</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer-main">
+    <p>© 2025 ProfePersonal - Plataforma educativa</p>
+    <p>Conforme a los programas de ANEP</p>
+  </footer>
+
+  <!-- Popup de Autenticación -->
+  <div class="popup-overlay" id="popup">
+    <div class="popup-content" id="popupContent">
+      <!-- Contenido dinámico -->
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    // Verificar autenticación al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAuthState();
+      crearParticulas();
+    });
+
+    // Función para verificar estado de autenticación
+    async function checkAuthState() {
+      const auth = localStorage.getItem('profePersonalAuth');
+      if (auth) {
+        const user = JSON.parse(auth);
+        document.getElementById('authButtons').style.display = 'none';
+        document.getElementById('userInfo').style.display = 'block';
+        document.getElementById('userName').textContent = `${user.nombre} (${user.plan})`;
+        
+        // Actualizar disponibilidad de herramientas según plan
+        updateToolAccess(user.plan);
+      }
+    }
+
+    // Actualizar acceso a herramientas según plan
+    function updateToolAccess(plan) {
+      const plans = {
+        'Dudas': ['tiz'],
+        'Repaso': ['tiz', 'gte'],
+        'Apoyo': ['tiz', 'gte', 'tep'],
+        'Premium': ['tiz', 'gte', 'tep', 'tpp']
+      };
+
+      // Deshabilitar/Habilitar cards según plan
+      document.querySelectorAll('.tool-card').forEach(card => {
+        const tool = card.querySelector('h3').textContent;
+        const toolId = getToolId(tool);
+        
+        if (!plans[plan]?.includes(toolId)) {
+          card.classList.add('disabled-tool');
+        } else {
+          card.classList.remove('disabled-tool');
+        }
+      });
+    }
+
+    function getToolId(toolName) {
+      const tools = {
+        'TizaIA': 'tiz',
+        'GeneraTusEjercicios': 'gte',
+        'TuExamPersonal': 'tep',
+        'TuProfePersonal': 'tpp'
+      };
+      return tools[toolName];
+    }
+
+    // Redirección con verificación de plan
+    function checkPlan(tool) {
+      const auth = localStorage.getItem('profePersonalAuth');
+      if (!auth) {
+        abrirPopup('login');
+        return;
+      }
+
+      const user = JSON.parse(auth);
+      const planAccess = {
+        'Dudas': ['tiz'],
+        'Repaso': ['tiz', 'gte'],
+        'Apoyo': ['tiz', 'gte', 'tep'],
+        'Premium': ['tiz', 'gte', 'tep', 'tpp']
+      };
+
+      if (planAccess[user.plan]?.includes(tool)) {
+        window.location.href = `${tool}.30.1.html`;
+      } else {
+        abrirPopup('upgrade');
+      }
+    }
+
+    function redirectToApp(app) {
+      window.location.href = `${app}.30.1.html`;
+    }
+
+    function showSecretMessage() {
+      const auth = localStorage.getItem('profePersonalAuth');
+      if (auth) {
+        const user = JSON.parse(auth);
+        if (user.email === 'tino@tino.com') {
+          alert('¡Hola Tino! Modo desarrollador activado.');
+        }
+      }
+    }
+  </script>
+</body>
+</html>
